@@ -1,6 +1,6 @@
 # Python
 # __pycache__/  # Commented out - user wants to include this
-*.py[cod]
+# *.py[cod]  # Commented out to allow .pyc files
 *$py.class
 *.so
 .Python
