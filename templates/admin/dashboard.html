@@ -1,0 +1,175 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Admin Dashboard - Rezidencia Faeldo Resort & Café{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2>Admin Dashboard</h2>
+            <p>Welcome, {{ current_user.username }}!</p>
+        </div>
+    </div>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="mb-4">Admin Dashboard</h2>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4 align-items-stretch">
+            <div class="col-6 col-md-3">
+                <div class="card bg-primary text-white h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5>Total Orders</h5>
+                                <h3>{{ total_orders }}</h3>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="bi bi-cart3 fs-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card bg-warning text-white h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5>Pending Orders</h5>
+                                <h3>{{ pending_orders }}</h3>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="bi bi-clock fs-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card bg-info text-white h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5>Pending Reservations</h5>
+                                <h3>{{ pending_reservations }}</h3>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="bi bi-calendar-check fs-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card bg-success text-white h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5>Total Customers</h5>
+                                <h3>{{ total_customers }}</h3>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="bi bi-people fs-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Recent Orders</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_orders %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Order #</th>
+                                        <th>Customer</th>
+                                        <th>Type</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in recent_orders %}
+                                    <tr>
+                                        <td>#{{ order.id }}</td>
+                                        <td>
+                                            {% if order.customer %}
+                                            {{ order.customer.full_name }}
+                                            {% else %}
+                                            {{ order.guest_name }}
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ order.order_type.title() }}</td>
+                                        <td>₱{{ "%.2f"|format(order.total_amount) }}</td>
+                                        <td>
+                                            <span
+                                                class="badge bg-{% if order.status == 'completed' %}success{% elif order.status == 'cancelled' %}danger{% else %}warning{% endif %}">
+                                                {{ order.status.title() }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if order.order_date %}
+                                            {{ (order.order_date | pht).strftime('%m/%d/%Y %I:%M %p') }}
+                                            {% else %}
+                                            N/A
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <a href="{{ url_for('admin_orders') }}" class="btn btn-primary">View All Orders</a>
+                        {% else %}
+                        <p class="text-muted">No orders yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Pending Reservations</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if pending_reservations_list %}
+                        {% for reservation in pending_reservations_list %}
+                        <div class="border-bottom pb-2 mb-2">
+                            <strong>
+                                {% if reservation.customer %}
+                                {{ reservation.customer.full_name }}
+                                {% else %}
+                                {{ reservation.guest_name }}
+                                {% endif %}
+                            </strong><br>
+                            <small class="text-muted">
+                                {{ reservation.reservation_date.strftime('%m/%d/%Y') }} at {{
+                                reservation.reservation_time.strftime('%I:%M %p') }}<br>
+                                Party of {{ reservation.party_size }}
+                            </small>
+                        </div>
+                        {% endfor %}
+                        <a href="{{ url_for('admin_reservations') }}" class="btn btn-warning btn-sm">Review All</a>
+                        {% else %}
+                        <p class="text-muted">No pending reservations.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

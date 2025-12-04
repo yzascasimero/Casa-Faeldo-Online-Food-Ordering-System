@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}Reservations - Rezidencia Faeldo Resort & Café{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="py-5 bg-primary text-white">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h1 class="display-4 fw-bold mb-3">Table Reservations</h1>
+                <p class="lead">Reserve your table for an unforgettable dining experience</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card border-0 shadow-lg">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">
+                            <i class="bi bi-calendar-check me-2"></i>Make a Reservation
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="POST" action="{{ url_for('reservations') }}" id="reservationForm">
+                            <div class="row g-3">
+                                <!-- Customer Information -->
+                                <div class="col-12">
+                                    <h5 class="text-primary mb-3">
+                                        <i class="bi bi-person me-2"></i>Contact Information
+                                    </h5>
+                                </div>
+                                
+                                {% if current_user.is_authenticated and current_user.__class__.__name__ == 'Customer' %}
+                                <div class="col-12">
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        Your contact information has been pre-filled from your profile.
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="col-md-6">
+                                    <label for="guest_name" class="form-label">Full Name *</label>
+                                    <input type="text" class="form-control" id="guest_name" name="guest_name" 
+                                           value="{% if current_user.is_authenticated and current_user.__class__.__name__ == 'Customer' %}{{ current_user.full_name }}{% endif %}" required>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="guest_email" class="form-label">Email Address *</label>
+                                    <input type="email" class="form-control" id="guest_email" name="guest_email" 
+                                           value="{% if current_user.is_authenticated and current_user.__class__.__name__ == 'Customer' %}{{ current_user.email }}{% endif %}" required>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="guest_phone" class="form-label">Phone Number *</label>
+                                    <input type="tel" class="form-control" id="guest_phone" name="guest_phone" 
+                                           value="{% if current_user.is_authenticated and current_user.__class__.__name__ == 'Customer' %}{{ current_user.phone or '' }}{% endif %}" required>
+                                </div>
+                                
+                                <!-- Reservation Details -->
+                                <div class="col-12 mt-4">
+                                    <h5 class="text-primary mb-3">
+                                        <i class="bi bi-calendar-event me-2"></i>Reservation Details
+                                    </h5>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="reservation_date" class="form-label">Preferred Date *</label>
+                                    <input type="date" class="form-control" id="reservation_date" name="reservation_date" required>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="reservation_time" class="form-label">Preferred Time *</label>
+                                    <select class="form-select" id="reservation_time" name="reservation_time" required>
+                                        <option value="">Select time...</option>
+                                        <!-- Time slots will be populated dynamically based on the selected date -->
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="number_of_people" class="form-label">Number of People *</label>
+                                    <select class="form-select" id="number_of_people" name="number_of_people" required>
+                                        <option value="">Select...</option>
+                                        {% for i in range(1, 13) %}
+                                        <option value="{{ i }}">{{ i }} {% if i == 1 %}person{% else %}people{% endif %}</option>
+                                        {% endfor %}
+                                        <option value="13+">13+ people (please call)</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="special_requests" class="form-label">Special Requests</label>
+                                    <textarea class="form-control" id="special_requests" name="special_requests" rows="3" placeholder="Any special occasions, dietary restrictions, or seating preferences? (Optional)"></textarea>
+                                </div>
+                                
+                                <div class="col-12 mt-4">
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-success btn-lg">
+                                            <i class="bi bi-check-circle me-2"></i>Confirm Reservation
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Information Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-10 mx-auto">
+                <div class="row g-4">
+                    <div class="col-md-4 text-center">
+                        <div class="mb-3">
+                            <i class="bi bi-clock display-4 text-primary"></i>
+                        </div>
+                        <h5>Operating Hours</h5>
+                        <p class="text-muted mb-0">
+                            Weekdays: 11:00 AM - 9:00 PM<br>
+                            Weekends: 10:00 AM - 9:00 PM
+                        </p>
+                    </div>
+                    
+                    <div class="col-md-4 text-center">
+                        <div class="mb-3">
+                            <i class="bi bi-people display-4 text-success"></i>
+                        </div>
+                        <h5>Group Reservations</h5>
+                        <p class="text-muted mb-0">
+                            For parties of 13+ people,<br>
+                            please call us directly at<br>
+                            <strong>+1 (555) 123-4567</strong>
+                        </p>
+                    </div>
+                    
+                    <div class="col-md-4 text-center">
+                        <div class="mb-3">
+                            <i class="bi bi-calendar-x display-4 text-info"></i>
+                        </div>
+                        <h5>Cancellation Policy</h5>
+                        <p class="text-muted mb-0">
+                            Free cancellation up to<br>
+                            2 hours before your<br>
+                            reservation time
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dateInput = document.getElementById('reservation_date');
+    const timeSelect = document.getElementById('reservation_time');
+    
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.min = today;
+    
+    // Set maximum date to 30 days from today
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + 30);
+    dateInput.max = maxDate.toISOString().split('T')[0];
+    
+    function generateTimeSlots(isWeekend) {
+        // Clear existing options
+        timeSelect.innerHTML = '<option value="">Select time...</option>';
+        
+        // Start and end times based on weekday/weekend
+        const startHour = isWeekend ? 10 : 11;
+        const endHour = 21; // 9 PM
+        
+        for (let hour = startHour; hour <= endHour; hour++) {
+            // Add both :00 and :30 slots except for the last hour
+            if (hour < endHour) {
+                const time00 = `${hour.toString().padStart(2, '0')}:00`;
+                const time30 = `${hour.toString().padStart(2, '0')}:30`;
+                const displayHour = hour > 12 ? hour - 12 : hour;
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                
+                const option00 = document.createElement('option');
+                option00.value = time00;
+                option00.textContent = `${displayHour}:00 ${ampm}`;
+                timeSelect.appendChild(option00);
+                
+                const option30 = document.createElement('option');
+                option30.value = time30;
+                option30.textContent = `${displayHour}:30 ${ampm}`;
+                timeSelect.appendChild(option30);
+            } else {
+                // For the last hour (9 PM), only add the :00 slot
+                const time00 = `${hour.toString().padStart(2, '0')}:00`;
+                const displayHour = hour > 12 ? hour - 12 : hour;
+                const ampm = hour >= 12 ? 'PM' : 'AM';
+                
+                const option00 = document.createElement('option');
+                option00.value = time00;
+                option00.textContent = `${displayHour}:00 ${ampm}`;
+                timeSelect.appendChild(option00);
+            }
+        }
+    }
+    
+    // Update time slots when date changes
+    dateInput.addEventListener('change', function() {
+        const selectedDate = new Date(this.value);
+        const isWeekend = selectedDate.getDay() === 0 || selectedDate.getDay() === 6;
+        generateTimeSlots(isWeekend);
+    });
+    
+    // Form validation
+    document.getElementById('reservationForm').addEventListener('submit', function(e) {
+        const numberOfPeople = document.getElementById('number_of_people').value;
+        
+        if (numberOfPeople === '13+') {
+            e.preventDefault();
+            alert('For parties of 13+ people, please call us directly at +1 (555) 123-4567 to make your reservation.');
+            return;
+        }
+        
+        const selectedDate = new Date(dateInput.value);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (selectedDate < today) {
+            e.preventDefault();
+            alert('Please select a future date for your reservation.');
+            dateInput.focus();
+            return;
+        }
+    });
+});
+</script>
+{% endblock %}

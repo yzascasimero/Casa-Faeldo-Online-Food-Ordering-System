@@ -1,0 +1,166 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Reservation Management - Rezidencia Faeldo Resort & Café{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">Reservation Management</h2>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th>Date & Time</th>
+                            <th>Party Size</th>
+                            <th>Contact</th>
+                            <th>Status</th>
+                            <th>Special Requests</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reservation in reservations %}
+                        <tr>
+                            <td>
+                                <strong>
+                                    {% if reservation.customer %}
+                                        {{ reservation.customer.full_name }}
+                                    {% else %}
+                                        {{ reservation.guest_name }}
+                                    {% endif %}
+                                </strong>
+                            </td>
+                            <td>
+                                {{ reservation.reservation_date.strftime('%B %d, %Y') }}<br>
+                                <small class="text-muted">{{ reservation.reservation_time.strftime('%I:%M %p') }}</small>
+                            </td>
+                            <td>{{ reservation.party_size }} guests</td>
+                            <td>
+                                {% if reservation.customer %}
+                                    {{ reservation.customer.email }}<br>
+                                    <small class="text-muted">{{ reservation.customer.phone or 'No phone' }}</small>
+                                {% else %}
+                                    {{ reservation.guest_email }}<br>
+                                    <small class="text-muted">{{ reservation.guest_phone or 'No phone' }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-{% if reservation.status == 'approved' %}success{% elif reservation.status == 'rejected' %}danger{% else %}warning{% endif %}">
+                                    {{ reservation.status.title() }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if reservation.special_requests %}
+                                    <small>{{ reservation.special_requests }}</small>
+                                {% else %}
+                                    <small class="text-muted">None</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if reservation.status == 'pending' %}
+                                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#reservationModal{{ reservation.id }}">
+                                    Review
+                                </button>
+                                {% else %}
+                                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#reservationModal{{ reservation.id }}">
+                                    View
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reservation Modals -->
+{% for reservation in reservations %}
+<div class="modal fade" id="reservationModal{{ reservation.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reservation Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin_update_reservation_status') }}">
+                <div class="modal-body">
+                    <input type="hidden" name="reservation_id" value="{{ reservation.id }}">
+                    
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Customer:</strong><br>
+                            {% if reservation.customer %}
+                                {{ reservation.customer.full_name }}
+                            {% else %}
+                                {{ reservation.guest_name }}
+                            {% endif %}
+                        </div>
+                        <div class="col-6">
+                            <strong>Contact:</strong><br>
+                            {% if reservation.customer %}
+                                {{ reservation.customer.email }}<br>
+                                {{ reservation.customer.phone or 'No phone' }}
+                            {% else %}
+                                {{ reservation.guest_email }}<br>
+                                {{ reservation.guest_phone or 'No phone' }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <strong>Date:</strong><br>
+                            {{ reservation.reservation_date.strftime('%B %d, %Y') }}
+                        </div>
+                        <div class="col-6">
+                            <strong>Time:</strong><br>
+                            {{ reservation.reservation_time.strftime('%I:%M %p') }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Party Size:</strong> {{ reservation.party_size }} guests
+                    </div>
+                    
+                    {% if reservation.special_requests %}
+                    <div class="mb-3">
+                        <strong>Special Requests:</strong><br>
+                        {{ reservation.special_requests }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="status{{ reservation.id }}" class="form-label">Status</label>
+                        <select class="form-select" name="status" id="status{{ reservation.id }}">
+                            <option value="pending" {% if reservation.status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="approved" {% if reservation.status == 'approved' %}selected{% endif %}>Approved</option>
+                            <option value="rejected" {% if reservation.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                            <option value="completed" {% if reservation.status == 'completed' %}selected{% endif %}>Completed</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="admin_notes{{ reservation.id }}" class="form-label">Admin Notes</label>
+                        <textarea class="form-control" name="admin_notes" id="admin_notes{{ reservation.id }}" rows="3" placeholder="Internal notes about this reservation...">{{ reservation.admin_notes or '' }}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Update Reservation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

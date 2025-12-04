@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Track Your Order - Rezidencia Faeldo Resort & Café{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-search me-2"></i>Track Your Order
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">Enter your order ID to track the status of your order.</p>
+
+                    <form method="POST" action="{{ url_for('order_tracking') }}">
+                        <div class="mb-3">
+                            <label for="order_id" class="form-label">Order ID</label>
+                            <input type="number" class="form-control" id="order_id" name="order_id"
+                                placeholder="Enter your order number (e.g., 123)" required>
+                            <div class="form-text">Your order ID was provided when you placed your order.</div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search me-2"></i>Track Order
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <h6 class="text-primary mb-2">
+                            <i class="bi bi-info-circle me-2"></i>Need Help?
+                        </h6>
+                        <p class="small mb-2">
+                            <strong>Can't find your order ID?</strong><br>
+                            Check your email confirmation or contact us at +639-1035-38912
+                        </p>
+                        <p class="small mb-0">
+                            <strong>Have an account?</strong><br>
+                            <a href="{{ url_for('customer_login') }}">Login</a> to view all your orders in your profile.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

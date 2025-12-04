@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block title %}Menu - Rezidencia Faeldo Resort & Café{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="py-5 bg-primary text-white">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h1 class="display-4 fw-bold mb-3">Our Menu</h1>
+                <p class="lead">Discover our delicious selection of fresh, locally-sourced dishes</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Menu Categories -->
+<section class="py-5">
+    <div class="container">
+        {% if categories %}
+        <!-- Category Filter -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-funnel me-2"></i>Filter by Category
+                                </h5>
+                            </div>
+                            <div class="col-md-4">
+                                <select id="categoryFilter" class="form-select">
+                                    <option value="">All Categories</option>
+                                    <optgroup label="Beverages">
+                                        <option value="Coffee-based">Coffee-based</option>
+                                        <option value="Smoothies">Smoothies</option>
+                                        <option value="Teas & Hot Chocolate">Teas & Hot Chocolate</option>
+                                        <option value="Espresso">Espresso</option>
+                                        <option value="Ice Blended">Ice Blended</option>
+                                        <option value="Lemonade">Lemonade</option>
+                                        <option value="Pitcher">Pitcher</option>
+                                    </optgroup>
+                                    <optgroup label="Food">
+                                        <option value="Appetizer">Appetizer</option>
+                                        <option value="Soup">Soup</option>
+                                        <option value="Pizza">Pizza</option>
+                                        <option value="Salad">Salad</option>
+                                        <option value="Pasta">Pasta</option>
+                                        <option value="Marinduque Pinoy Dishes">Marinduque Pinoy Dishes</option>
+                                        <option value="Solo Meals">Solo Meals</option>
+                                    </optgroup>
+                                    <optgroup label="Desserts and Wines">
+                                        <option value="Dessert">Dessert</option>
+                                        <option value="Wine">Wine</option>
+                                        <option value="Beer & Liquor">Beer & Liquor</option>
+                                        <option value="Soda & Juice">Soda & Juice</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% for category, products in categories.items() %}
+        <div class="category-section mb-5" data-category="{{ category }}">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h2 class="fw-bold text-primary border-bottom pb-2">
+                        <i
+                            class="bi bi-{% if category == 'Main Course' %}knife-fork{% elif category == 'Beverages' %}cup-straw{% elif category == 'Desserts' %}cake{% elif category == 'Salads' %}flower1{% else %}circle{% endif %} me-2"></i>
+                        {{ category }}
+                    </h2>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                {% for product in products %}
+                <div class="col-lg-6 col-xl-4">
+                    <div class="card h-100 shadow-sm border-0">
+                        {% if product.image_url %}
+                        <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}"
+                            style="height: 200px; object-fit: cover;">
+                        {% endif %}
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title fw-bold">{{ product.name }}</h5>
+                                <span class="badge bg-success fs-6">₱{{ "%.2f"|format(product.price) }}</span>
+                            </div>
+                            <p class="card-text text-muted mb-3">{{ product.description }}</p>
+
+                            <form method="POST" action="{{ url_for('add_to_cart') }}" class="add-to-cart-form">
+                                <input type="hidden" name="product_id" value="{{ product.id }}">
+                                <div class="row g-2">
+                                    <div class="col-4">
+                                        <select name="quantity" class="form-select form-select-sm">
+                                            {% for i in range(1, 11) %}
+                                            <option value="{{ i }}">{{ i }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-8">
+                                        <button type="submit" class="btn btn-primary w-100 btn-sm">
+                                            <i class="bi bi-cart-plus me-1"></i>Add to Cart
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="row">
+            <div class="col-12 text-center">
+                <div class="alert alert-info">
+                    <h4>Menu Coming Soon</h4>
+                    <p class="mb-0">We're updating our menu. Please check back soon!</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- View Cart Section -->
+{% if session.cart and session.cart|length > 0 %}
+<section class="py-4 bg-light sticky-bottom">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ session.cart.values()|sum }} item(s) in cart</strong>
+                    </div>
+                    <a href="{{ url_for('cart') }}" class="btn btn-success">
+                        <i class="bi bi-cart-check me-2"></i>View Cart & Checkout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Category filter functionality
+        const categoryFilter = document.getElementById('categoryFilter');
+        const categorySections = document.querySelectorAll('.category-section');
+
+        if (categoryFilter) {
+            categoryFilter.addEventListener('change', function () {
+                const selectedCategory = this.value;
+
+                categorySections.forEach(section => {
+                    const sectionCategory = section.getAttribute('data-category');
+
+                    if (selectedCategory === '' || selectedCategory === sectionCategory) {
+                        // Show the section with smooth animation
+                        section.style.display = 'block';
+                        section.style.opacity = '0';
+                        section.style.transform = 'translateY(20px)';
+
+                        // Animate in
+                        setTimeout(() => {
+                            section.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                            section.style.opacity = '1';
+                            section.style.transform = 'translateY(0)';
+                        }, 10);
+                    } else {
+                        // Hide the section with smooth animation
+                        section.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                        section.style.opacity = '0';
+                        section.style.transform = 'translateY(-20px)';
+
+                        setTimeout(() => {
+                            section.style.display = 'none';
+                        }, 300);
+                    }
+                });
+
+                // Scroll to top of menu after filtering
+                if (selectedCategory !== '') {
+                    setTimeout(() => {
+                        const menuSection = document.querySelector('.category-section[style*="block"]');
+                        if (menuSection) {
+                            menuSection.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start'
+                            });
+                        }
+                    }, 350);
+                }
+            });
+        }
+
+        // Add to cart forms handling
+        const forms = document.querySelectorAll('.add-to-cart-form');
+        forms.forEach(form => {
+            form.addEventListener('submit', function (e) {
+                const button = form.querySelector('button[type="submit"]');
+                const originalText = button.innerHTML;
+
+                button.innerHTML = '<i class="bi bi-check-circle me-1"></i>Added!';
+                button.disabled = true;
+
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                }, 1500);
+            });
+        });
+    });
+</script>
+{% endblock %}
