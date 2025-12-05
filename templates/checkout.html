@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout - Rezidencia Faeldo Resort & Café{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="py-4 bg-primary text-white">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="h2 mb-0">
+                    <i class="bi bi-credit-card me-2"></i>Checkout
+                </h1>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <form method="POST" action="{{ url_for('place_order') }}" id="checkoutForm">
+            <div class="row">
+                <div class="col-lg-8">
+                    <!-- Customer Information -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="bi bi-person me-2"></i>Customer Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if current_user.is_authenticated and current_user.__class__.__name__ == 'Customer' %}
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i>
+                                Your information has been pre-filled from your profile.
+                            </div>
+                            {% endif %}
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="customer_name" class="form-label">Full Name *</label>
+                                    <input type="text" class="form-control" id="customer_name" name="customer_name"
+                                        value="{% if current_user.is_authenticated and current_user.__class__.__name__ == 'Customer' %}{{ current_user.full_name }}{% endif %}"
+                                        required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="customer_email" class="form-label">Email Address *</label>
+                                    <input type="email" class="form-control" id="customer_email" name="customer_email"
+                                        value="{% if current_user.is_authenticated and current_user.__class__.__name__ == 'Customer' %}{{ current_user.email }}{% endif %}"
+                                        required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="customer_phone" class="form-label">Phone Number *</label>
+                                    <input type="tel" class="form-control" id="customer_phone" name="customer_phone"
+                                        value="{% if current_user.is_authenticated and current_user.__class__.__name__ == 'Customer' %}{{ current_user.phone or '' }}{% endif %}"
+                                        required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Type -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="bi bi-truck me-2"></i>Order Type
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="order_type" id="delivery"
+                                            value="delivery" checked>
+                                        <label class="form-check-label" for="delivery">
+                                            <i class="bi bi-house me-2"></i>Delivery
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="order_type" id="takeout"
+                                            value="takeout">
+                                        <label class="form-check-label" for="takeout">
+                                            <i class="bi bi-bag me-2"></i>Takeout
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="order_type" id="dinein"
+                                            value="dine-in">
+                                        <label class="form-check-label" for="dinein">
+                                            <i class="bi bi-people me-2"></i>Dine-In
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="addressSection" class="mt-3">
+                                <label for="address" class="form-label">Delivery Address *</label>
+                                <textarea class="form-control" id="address" name="customer_address" rows="3"
+                                    placeholder="Enter your complete delivery address">{% if current_user.is_authenticated and current_user.__class__.__name__ == 'Customer' and current_user.address %}{{ current_user.address }}{% if current_user.city %}, {{ current_user.city }}{% endif %}{% if current_user.postal_code %} {{ current_user.postal_code }}{% endif %}{% endif %}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="bi bi-credit-card me-2"></i>Payment Method
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="payment_method" id="cash"
+                                            value="cash" checked>
+                                        <label class="form-check-label" for="cash">
+                                            <i class="bi bi-cash me-2"></i>Cash on Delivery/Pickup
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="payment_method" id="online"
+                                            value="online">
+                                        <label class="form-check-label" for="online">
+                                            <i class="bi bi-qr-code me-2"></i>Online Payment (QR Code)
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="qrCodeSection" class="mt-3 d-none">
+                                <div class="alert alert-info">
+                                    <h6><i class="bi bi-info-circle me-2"></i>Online Payment Instructions</h6>
+                                    <p class="mb-0">After placing your order, you will receive a QR code to complete
+                                        your payment via your preferred mobile payment app.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Special Instructions -->
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="bi bi-chat-text me-2"></i>Special Instructions
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <textarea class="form-control" name="special_instructions" rows="3"
+                                placeholder="Any special requests or dietary restrictions? (Optional)"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm sticky-top">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">Order Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            <!-- Order Items -->
+                            <div class="mb-3">
+                                {% for item in cart_items %}
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <h6 class="mb-0">{{ item.product.name }}</h6>
+                                        <small class="text-muted">Qty: {{ item.quantity }} × ₱{{
+                                            "%.2f"|format(item.product.price) }}</small>
+                                    </div>
+                                    <span class="fw-bold">₱{{ "%.2f"|format(item.subtotal) }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            <hr>
+
+                            <!-- Price Breakdown -->
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal:</span>
+                                <span>₱{{ "%.2f"|format(total) }}</span>
+                            </div>
+                            <!-- Tax calculation commented out as requested -->
+                            <!-- <div class="d-flex justify-content-between mb-2">
+                                <span>Tax (8.5%):</span>
+                                <span>₱{{ "%.2f"|format(total * 0.085) }}</span>
+                            </div> -->
+                            <div class="d-flex justify-content-between mb-2" id="deliveryFeeRow">
+                                <span>Delivery Fee:</span>
+                                <span>₱3.99</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between fw-bold h5">
+                                <span>Total:</span>
+                                <span id="finalTotal">₱{{ "%.2f"|format(total + 3.99) }}</span>
+                            </div>
+
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="bi bi-check-circle me-2"></i>Place Order
+                                </button>
+                                <a href="{{ url_for('cart') }}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-left me-2"></i>Back to Cart
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const deliveryRadio = document.getElementById('delivery');
+        const takeoutRadio = document.getElementById('takeout');
+        const dineinRadio = document.getElementById('dinein');
+        const addressSection = document.getElementById('addressSection');
+        const addressField = document.getElementById('address');
+        const deliveryFeeRow = document.getElementById('deliveryFeeRow');
+        const finalTotal = document.getElementById('finalTotal');
+
+        const cashRadio = document.getElementById('cash');
+        const onlineRadio = document.getElementById('online');
+        const qrCodeSection = document.getElementById('qrCodeSection');
+
+        const subtotal = {{ total }};
+
+    // Tax calculation commented out as requested
+    // const tax = {{ total * 0.085 }};
+    const deliveryFee = 3.99;
+
+    function updateOrderType() {
+        if (deliveryRadio.checked) {
+            addressSection.style.display = 'block';
+            addressField.required = true;
+            deliveryFeeRow.style.display = 'flex';
+            finalTotal.textContent = '₱' + ((subtotal + deliveryFee).toFixed(2));
+        } else {
+            addressSection.style.display = 'none';
+            addressField.required = false;
+            deliveryFeeRow.style.display = 'none';
+            finalTotal.textContent = '₱' + (subtotal.toFixed(2));
+        }
+    }
+
+    function updatePaymentMethod() {
+        if (onlineRadio.checked) {
+            qrCodeSection.classList.remove('d-none');
+        } else {
+            qrCodeSection.classList.add('d-none');
+        }
+    }
+
+    // Initialize
+    updateOrderType();
+    updatePaymentMethod();
+
+    // Event listeners
+    deliveryRadio.addEventListener('change', updateOrderType);
+    takeoutRadio.addEventListener('change', updateOrderType);
+    dineinRadio.addEventListener('change', updateOrderType);
+
+    cashRadio.addEventListener('change', updatePaymentMethod);
+    onlineRadio.addEventListener('change', updatePaymentMethod);
+
+    // Form validation
+    document.getElementById('checkoutForm').addEventListener('submit', function (e) {
+        if (deliveryRadio.checked && !addressField.value.trim()) {
+            e.preventDefault();
+            alert('Please enter your delivery address.');
+            addressField.focus();
+        }
+    });
+});
+</script>
+{% endblock %}

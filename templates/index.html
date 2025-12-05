@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8 mx-auto text-center hero-content">
+                <h1 class="display-3 fw-bold mb-4">Welcome to Rezidenzia Faeldo</h1>
+                <p class="lead mb-4">Experience exceptional dining at our resort café. Order online for delivery, takeout, or dine-in reservations.</p>
+                <div class="d-flex flex-wrap gap-3 justify-content-center">
+                    <a href="{{ url_for('menu') }}" class="btn btn-light btn-lg">
+                        <i class="bi bi-menu-app me-2"></i>View Menu
+                    </a>
+                    <a href="{{ url_for('reservations') }}" class="btn btn-outline-light btn-lg">
+                        <i class="bi bi-calendar-check me-2"></i>Make Reservation
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="display-5 fw-bold mb-3">Why Choose Us?</h2>
+                <p class="lead text-muted">Convenient ordering, delicious food, and exceptional service</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="bi bi-truck display-4 text-primary"></i>
+                        </div>
+                        <h5 class="card-title">Fast Delivery</h5>
+                        <p class="card-text">Get your favorite meals delivered quickly to your location with real-time tracking.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="bi bi-calendar-heart display-4 text-success"></i>
+                        </div>
+                        <h5 class="card-title">Easy Reservations</h5>
+                        <p class="card-text">Book your table in advance with our simple online reservation system.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="bi bi-credit-card display-4 text-info"></i>
+                        </div>
+                        <h5 class="card-title">Multiple Payment Options</h5>
+                        <p class="card-text">Pay with cash on delivery or use our convenient online payment via QR code.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Order Types Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="display-5 fw-bold mb-3">How Would You Like to Order?</h2>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card h-100 border-0 shadow">
+                    <div class="card-body text-center p-4">
+                        <i class="bi bi-house display-4 text-primary mb-3"></i>
+                        <h4 class="card-title">Delivery</h4>
+                        <p class="card-text">Have your order delivered right to your door. Perfect for staying in and enjoying resort life.</p>
+                        <a href="{{ url_for('menu') }}" class="btn btn-primary">Order for Delivery</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card h-100 border-0 shadow">
+                    <div class="card-body text-center p-4">
+                        <i class="bi bi-bag display-4 text-success mb-3"></i>
+                        <h4 class="card-title">Takeout</h4>
+                        <p class="card-text">Order ahead and pick up your food when it's ready. No waiting, just grab and go.</p>
+                        <a href="{{ url_for('menu') }}" class="btn btn-success">Order for Takeout</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card h-100 border-0 shadow">
+                    <div class="card-body text-center p-4">
+                        <i class="bi bi-people display-4 text-info mb-3"></i>
+                        <h4 class="card-title">Dine-In</h4>
+                        <p class="card-text">Enjoy the full restaurant experience. Make a reservation and dine with us.</p>
+                        <a href="{{ url_for('reservations') }}" class="btn btn-info">Make Reservation</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="bg-image-section py-5 text-white cta-section">
+    <div class="container text-center">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="display-6 fw-bold mb-3">Ready to Order?</h2>
+                <p class="lead mb-4">Browse our delicious menu and place your order in just a few clicks!</p>
+                <a href="{{ url_for('menu') }}" class="btn btn-light btn-lg">
+                    <i class="bi bi-arrow-right me-2"></i>Start Ordering Now
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

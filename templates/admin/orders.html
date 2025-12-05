@@ -1,0 +1,312 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Order Management - Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="admin-page-header">
+        <h1>Order Management</h1>
+        <p>View and manage all customer orders</p>
+    </div>
+    <div class="container">
+        {% if orders %}
+        <!-- Filter Tabs -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <ul class="nav nav-pills" id="orderTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="all-tab" data-bs-toggle="pill" data-bs-target="#all"
+                            type="button" role="tab">
+                            All Orders ({{ orders|length }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="pending-tab" data-bs-toggle="pill" data-bs-target="#pending"
+                            type="button" role="tab">
+                            Pending ({{ orders|selectattr("status", "equalto", "pending")|list|length }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="preparing-tab" data-bs-toggle="pill" data-bs-target="#preparing"
+                            type="button" role="tab">
+                            Preparing ({{ orders|selectattr("status", "equalto", "preparing")|list|length }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="completed-tab" data-bs-toggle="pill" data-bs-target="#completed"
+                            type="button" role="tab">
+                            Completed ({{ orders|selectattr("status", "equalto", "completed")|list|length }})
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Order Tabs Content -->
+        <div class="tab-content" id="orderTabsContent">
+            <!-- All Orders -->
+            <div class="tab-pane fade show active" id="all" role="tabpanel">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Type</th>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in orders %}
+                                    <tr>
+                                        <td><code>{{ order.id[:8] }}...</code></td>
+                                        <td>
+                                            <div>
+                                                <strong>{{ order.customer_name }}</strong><br>
+                                                <small class="text-muted">{{ order.customer_phone }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ order.order_type.title() }}</span>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                {{ order.order_date.strftime('%m/%d/%Y %I:%M %p') }}
+                                                {% if order.placed_outside_hours %}
+                                                <br><small class="badge bg-warning text-dark">Outside Hours</small>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>₱{{ "%.2f"|format(order.total_amount) }}</td>
+                                        <td>
+                                            <span
+                                                class="badge bg-{% if order.status == 'pending' %}warning{% elif order.status == 'preparing' %}info{% elif order.status == 'ready' %}success{% elif order.status == 'out-for-delivery' %}primary{% elif order.status == 'completed' %}success{% else %}secondary{% endif %}">
+                                                {{ order.status.title().replace('-', ' ') }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-outline-primary view-order-btn"
+                                                data-order-id="{{ order.id }}" data-bs-toggle="modal"
+                                                data-bs-target="#orderDetailsModal">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            {% if order.status != 'completed' %}
+                                            <div class="btn-group">
+                                                <button type="button"
+                                                    class="btn btn-sm btn-outline-success dropdown-toggle"
+                                                    data-bs-toggle="dropdown">
+                                                    Update
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    {% if order.status == 'pending' %}
+                                                    <li><a class="dropdown-item update-status-btn" href="#"
+                                                            data-order-id="{{ order.id }}" data-status="preparing">Mark
+                                                            as Preparing</a></li>
+                                                    {% endif %}
+                                                    {% if order.status == 'preparing' %}
+                                                    <li><a class="dropdown-item update-status-btn" href="#"
+                                                            data-order-id="{{ order.id }}"
+                                                            data-status="{% if order.order_type == 'delivery' %}out-for-delivery{% else %}ready{% endif %}">
+                                                            Mark as {% if order.order_type == 'delivery' %}Out for
+                                                            Delivery{% else %}Ready{% endif %}
+                                                        </a></li>
+                                                    {% endif %}
+                                                    {% if order.status in ['ready', 'out-for-delivery'] %}
+                                                    <li><a class="dropdown-item update-status-btn" href="#"
+                                                            data-order-id="{{ order.id }}" data-status="completed">Mark
+                                                            as Completed</a></li>
+                                                    {% endif %}
+                                                </ul>
+                                            </div>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtered views for each status -->
+            {% for status in ['pending', 'preparing', 'completed'] %}
+            <div class="tab-pane fade" id="{{ status }}" role="tabpanel">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Type</th>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in orders if order.status == status %}
+                                    <tr>
+                                        <td><code>{{ order.id[:8] }}...</code></td>
+                                        <td>
+                                            <div>
+                                                <strong>{{ order.customer_name }}</strong><br>
+                                                <small class="text-muted">{{ order.customer_phone }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ order.order_type.title() }}</span>
+                                        </td>
+                                        <td>{{ order.order_date.strftime('%m/%d/%Y %I:%M %p') }}</td>
+                                        <td>₱{{ "%.2f"|format(order.total_amount) }}</td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-outline-primary view-order-btn"
+                                                data-order-id="{{ order.id }}" data-bs-toggle="modal"
+                                                data-bs-target="#orderDetailsModal">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                            {% if order.status != 'completed' %}
+                                            <div class="btn-group">
+                                                <button type="button"
+                                                    class="btn btn-sm btn-outline-success dropdown-toggle"
+                                                    data-bs-toggle="dropdown">
+                                                    Update
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    {% if order.status == 'pending' %}
+                                                    <li><a class="dropdown-item update-status-btn" href="#"
+                                                            data-order-id="{{ order.id }}" data-status="preparing">Mark
+                                                            as Preparing</a></li>
+                                                    {% endif %}
+                                                    {% if order.status == 'preparing' %}
+                                                    <li><a class="dropdown-item update-status-btn" href="#"
+                                                            data-order-id="{{ order.id }}"
+                                                            data-status="{% if order.order_type == 'delivery' %}out-for-delivery{% else %}ready{% endif %}">
+                                                            Mark as {% if order.order_type == 'delivery' %}Out for
+                                                            Delivery{% else %}Ready{% endif %}
+                                                        </a></li>
+                                                    {% endif %}
+                                                    {% if order.status in ['ready', 'out-for-delivery'] %}
+                                                    <li><a class="dropdown-item update-status-btn" href="#"
+                                                            data-order-id="{{ order.id }}" data-status="completed">Mark
+                                                            as Completed</a></li>
+                                                    {% endif %}
+                                                </ul>
+                                            </div>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="6" class="text-center py-4">
+                                            <p class="text-muted mb-0">No {{ status }} orders</p>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <h3>No orders yet</h3>
+            <p class="text-muted">Orders will appear here when customers place them</p>
+        </div>
+        {% endif %}
+</div>
+
+<!-- Order Details Modal -->
+<div class="modal fade" id="orderDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Order Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="orderDetailsContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden form for status updates -->
+<form id="updateStatusForm" method="POST" action="{{ url_for('admin_update_order_status') }}" style="display: none;">
+    <input type="hidden" id="update_order_id" name="order_id">
+    <input type="hidden" id="update_status" name="status">
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // View order details
+        document.querySelectorAll('.view-order-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const orderId = this.dataset.orderId;
+
+                // Find order data (in a real app, this would be an AJAX call)
+                const orders = {{ orders | tojson
+            }};
+        const order = orders.find(o => o.id === orderId);
+
+        if (order) {
+            const content = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Customer Information</h6>
+                                <p><strong>Name:</strong> ${order.customer_name}<br>
+                                <strong>Email:</strong> ${order.customer_email}<br>
+                                <strong>Phone:</strong> ${order.customer_phone}</p>
+                                
+                                <h6>Order Information</h6>
+                                <p><strong>Order ID:</strong> ${order.id}<br>
+                                <strong>Type:</strong> ${order.order_type}<br>
+                                <strong>Date:</strong> ${new Date(order.order_date).toLocaleString()}<br>
+                                <strong>Status:</strong> <span class="badge bg-primary">${order.status}</span></p>
+                                
+                                ${order.address ? `<h6>Delivery Address</h6><p>${order.address}</p>` : ''}
+                                ${order.special_instructions ? `<h6>Special Instructions</h6><p>${order.special_instructions}</p>` : ''}
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Payment Information</h6>
+                                <p><strong>Method:</strong> ${order.payment_method}<br>
+                                <strong>Total:</strong> ₱${order.total_amount.toFixed(2)}</p>
+                            </div>
+                        </div>
+                    `;
+
+            document.getElementById('orderDetailsContent').innerHTML = content;
+        }
+    });
+        });
+
+    // Update order status
+    document.querySelectorAll('.update-status-btn').forEach(button => {
+        button.addEventListener('click', function (e) {
+            e.preventDefault();
+
+            const orderId = this.dataset.orderId;
+            const status = this.dataset.status;
+
+            if (confirm(`Are you sure you want to update this order status to "${status.replace('-', ' ')}"?`)) {
+                document.getElementById('update_order_id').value = orderId;
+                document.getElementById('update_status').value = status;
+                document.getElementById('updateStatusForm').submit();
+            }
+        });
+    });
+    });
+</script>
+{% endblock %}

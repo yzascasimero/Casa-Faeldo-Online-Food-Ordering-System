@@ -1,0 +1,535 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Menu Management - Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="admin-page-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1>Menu Management</h1>
+                <p>Manage your menu items and categories</p>
+            </div>
+            <button class="btn btn-success btn-admin" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                Add Product
+            </button>
+        </div>
+    </div>
+    <div class="container">
+        {% if categories %}
+        {% for category, products in categories.items() %}
+        <div class="category-section mb-5">
+            <div class="row mb-3">
+                <div class="col-12">
+                    <h3 class="fw-bold text-primary border-bottom pb-3 mb-4" style="border-color: #e2e8f0 !important; font-size: 1.5rem;">{{ category }}</h3>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                {% for product in products %}
+                <div class="col-lg-6 col-xl-4">
+                    <div class="card admin-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title">{{ product.name }}</h5>
+                                <div class="text-end">
+                                    <span class="badge bg-success fs-6">₱{{ "%.2f"|format(product.price) }}</span>
+                                    <div class="mt-1">
+                                        <span
+                                            class="badge fs-6 {{ 'bg-success' if product.available else 'bg-danger' }}"
+                                            id="availability-badge-{{ product.id }}">
+                                            {{ 'Available' if product.available else 'Unavailable' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="height: 200px; overflow: hidden; background-color: #f8f9fa; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; border-radius: 0.375rem;">
+                                {% if product.image_url %}
+                                <img src="{{ product.image_url }}" alt="{{ product.name }}" class="img-fluid" style="width: 100%; height: 100%; object-fit: cover;">
+                                {% else %}
+                                <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                                {% endif %}
+                            </div>
+                            <p class="card-text text-muted mb-3">{{ product.description }}</p>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <strong>Category:</strong> {{ product.category }}
+                                    {% if product.subcategory %}
+                                    <br><strong>Subcategory:</strong> {{ product.subcategory }}
+                                    {% endif %}
+                                </small>
+                            </p>
+
+                            <div class="btn-group w-100" role="group">
+                                <button type="button" class="btn btn-outline-primary btn-sm edit-product-btn btn-admin"
+                                    data-product-id="{{ product.id }}" data-product-name="{{ product.name }}"
+                                    data-product-description="{{ product.description }}"
+                                    data-product-price="{{ product.price }}"
+                                    data-product-category="{{ product.category }}"
+                                    data-product-subcategory="{{ product.subcategory or '' }}"
+                                    data-product-variant="{{ product.variant or '' }}" data-bs-toggle="modal"
+                                    data-bs-target="#editProductModal">
+                                    Edit
+                                </button>
+                                <button type="button"
+                                    class="btn btn-sm toggle-availability-btn btn-admin {{ 'btn-outline-warning' if product.available else 'btn-outline-success' }}"
+                                    data-product-id="{{ product.id }}"
+                                    data-product-available="{{ product.available|lower }}">
+                                    {{ 'Make Unavailable' if product.available else 'Make Available' }}
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm delete-product-btn btn-admin"
+                                    data-product-id="{{ product.id }}" data-product-name="{{ product.name }}"
+                                    data-bs-toggle="modal" data-bs-target="#deleteProductModal">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="text-center py-5">
+            <h3>No menu items yet</h3>
+            <p class="text-muted mb-4">Start by adding your first menu item</p>
+            <button class="btn btn-success btn-lg btn-admin" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                Add First Product
+            </button>
+        </div>
+        {% endif %}
+</div>
+
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true" data-bs-backdrop="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addProductModalLabel">Add New Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin_add_product') }}" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="add_name" class="form-label">Product Name *</label>
+                        <input type="text" class="form-control" id="add_name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="add_description" class="form-label">Description *</label>
+                        <textarea class="form-control" id="add_description" name="description" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="add_price" class="form-label">Price (₱) *</label>
+                        <input type="number" class="form-control" id="add_price" name="price" step="0.01" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="add_image" class="form-label">Product Image</label>
+                        <input type="file" class="form-control" id="add_image" name="image" accept="image/*">
+                    </div>
+                    <div class="mb-3">
+                        <label for="add_classification" class="form-label">Classification *</label>
+                        <select class="form-select" id="add_classification" name="classification" required>
+                            <option value="">Select Classification</option>
+                            <optgroup label="Food Menu">
+                                <option value="Appetizer" data-category="Food Menu">Appetizer</option>
+                                <option value="Soup" data-category="Food Menu">Soup</option>
+                                <option value="Pizza" data-category="Food Menu">Pizza</option>
+                                <option value="Salad" data-category="Food Menu">Salad</option>
+                                <option value="Pasta" data-category="Food Menu">Pasta</option>
+                                <option value="Marinduque & Pinoy Dishes" data-category="Food Menu">Marinduque & Pinoy Dishes</option>
+                                <option value="Solo Meals" data-category="Food Menu">Solo Meals</option>
+                            </optgroup>
+                            <optgroup label="Drinks Menu">
+                                <option value="Coffee Based" data-category="Drinks Menu">Coffee Based</option>
+                                <option value="Smoothies" data-category="Drinks Menu">Smoothies</option>
+                                <option value="Teas & Hot Chocolate" data-category="Drinks Menu">Teas & Hot Chocolate</option>
+                                <option value="Espresso" data-category="Drinks Menu">Espresso</option>
+                                <option value="Ice Blended" data-category="Drinks Menu">Ice Blended</option>
+                                <option value="Lemonade" data-category="Drinks Menu">Lemonade</option>
+                                <option value="Pitcher" data-category="Drinks Menu">Pitcher</option>
+                            </optgroup>
+                            <optgroup label="Dessert & Wine">
+                                <option value="Dessert" data-category="Dessert & Wine">Dessert</option>
+                                <option value="Wine" data-category="Dessert & Wine">Wine</option>
+                                <option value="Beer & Liquour" data-category="Dessert & Wine">Beer & Liquour</option>
+                                <option value="Soda & Juice in Can" data-category="Dessert & Wine">Soda & Juice in Can</option>
+                            </optgroup>
+                        </select>
+                        <input type="hidden" id="add_category" name="category">
+                        <input type="hidden" id="add_subcategory" name="subcategory">
+                    </div>
+                    <div class="mb-3" id="add_variant_group" style="display:none;">
+                        <label for="add_variant" class="form-label">Option *</label>
+                        <select class="form-select" id="add_variant" name="variant"></select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-admin" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success btn-admin">Add Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Product Modal -->
+<div class="modal fade" id="editProductModal" tabindex="-1" data-bs-backdrop="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('admin_update_product') }}" enctype="multipart/form-data">
+                <input type="hidden" id="edit_product_id" name="product_id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_name" class="form-label">Product Name *</label>
+                        <input type="text" class="form-control" id="edit_name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_description" class="form-label">Description *</label>
+                        <textarea class="form-control" id="edit_description" name="description" rows="3"
+                            required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_price" class="form-label">Price (₱) *</label>
+                        <input type="number" class="form-control" id="edit_price" name="price" step="0.01" min="0"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_image" class="form-label">Replace Image</label>
+                        <input type="file" class="form-control" id="edit_image" name="image" accept="image/*">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_classification" class="form-label">Classification *</label>
+                        <select class="form-select" id="edit_classification" name="classification" required>
+                            <option value="">Select Classification</option>
+                            <optgroup label="Food Menu">
+                                <option value="Appetizer" data-category="Food Menu">Appetizer</option>
+                                <option value="Soup" data-category="Food Menu">Soup</option>
+                                <option value="Pizza" data-category="Food Menu">Pizza</option>
+                                <option value="Salad" data-category="Food Menu">Salad</option>
+                                <option value="Pasta" data-category="Food Menu">Pasta</option>
+                                <option value="Marinduque & Pinoy Dishes" data-category="Food Menu">Marinduque & Pinoy Dishes</option>
+                                <option value="Solo Meals" data-category="Food Menu">Solo Meals</option>
+                            </optgroup>
+                            <optgroup label="Drinks Menu">
+                                <option value="Coffee Based" data-category="Drinks Menu">Coffee Based</option>
+                                <option value="Smoothies" data-category="Drinks Menu">Smoothies</option>
+                                <option value="Teas & Hot Chocolate" data-category="Drinks Menu">Teas & Hot Chocolate</option>
+                                <option value="Espresso" data-category="Drinks Menu">Espresso</option>
+                                <option value="Ice Blended" data-category="Drinks Menu">Ice Blended</option>
+                                <option value="Lemonade" data-category="Drinks Menu">Lemonade</option>
+                                <option value="Pitcher" data-category="Drinks Menu">Pitcher</option>
+                            </optgroup>
+                            <optgroup label="Dessert & Wine">
+                                <option value="Dessert" data-category="Dessert & Wine">Dessert</option>
+                                <option value="Wine" data-category="Dessert & Wine">Wine</option>
+                                <option value="Beer & Liquour" data-category="Dessert & Wine">Beer & Liquour</option>
+                                <option value="Soda & Juice in Can" data-category="Dessert & Wine">Soda & Juice in Can</option>
+                            </optgroup>
+                        </select>
+                        <input type="hidden" id="edit_category" name="category">
+                        <input type="hidden" id="edit_subcategory" name="subcategory">
+                    </div>
+                    <div class="mb-3" id="edit_variant_group" style="display:none;">
+                        <label for="edit_variant" class="form-label">Option *</label>
+                        <select class="form-select" id="edit_variant" name="variant"></select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-admin" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-admin">Update Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Product Modal -->
+<div class="modal fade" id="deleteProductModal" tabindex="-1" data-bs-backdrop="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="delete_product_name"></strong>?</p>
+                <p class="text-muted">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-admin" data-bs-dismiss="modal">Cancel</button>
+                    <form method="POST" action="{{ url_for('admin_delete_product') }}" class="d-inline">
+                        <input type="hidden" id="delete_product_id" name="product_id">
+                        <button type="submit" class="btn btn-danger btn-admin">Delete Product</button>
+                    </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Handle classification selection for Add Product Modal
+        const addClassification = document.getElementById('add_classification');
+        const addCategory = document.getElementById('add_category');
+        const addSubcategory = document.getElementById('add_subcategory');
+        const addVariantGroup = document.getElementById('add_variant_group');
+        const addVariant = document.getElementById('add_variant');
+        
+        if (addClassification) {
+            addClassification.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption.value) {
+                    const category = selectedOption.getAttribute('data-category');
+                    const subcategory = selectedOption.value;
+                    
+                    addCategory.value = category;
+                    addSubcategory.value = subcategory;
+                    
+                    // Update variant UI
+                    if (addSubcategory && addSubcategory.value) {
+                        updateVariantUI(addSubcategory, addVariantGroup, addVariant);
+                    }
+                } else {
+                    addCategory.value = '';
+                    addSubcategory.value = '';
+                    // Hide variant group
+                    if (addVariantGroup) addVariantGroup.style.display = 'none';
+                    if (addVariant) {
+                        addVariant.required = false;
+                        addVariant.innerHTML = '';
+                    }
+                }
+            });
+        }
+
+        // Handle classification selection for Edit Product Modal
+        const editClassification = document.getElementById('edit_classification');
+        const editCategory = document.getElementById('edit_category');
+        const editSubcategory = document.getElementById('edit_subcategory');
+        const editVariantGroup = document.getElementById('edit_variant_group');
+        const editVariant = document.getElementById('edit_variant');
+        
+        if (editClassification) {
+            editClassification.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption.value) {
+                    const category = selectedOption.getAttribute('data-category');
+                    const subcategory = selectedOption.value;
+                    
+                    editCategory.value = category;
+                    editSubcategory.value = subcategory;
+                    
+                    // Update variant UI
+                    if (editSubcategory && editSubcategory.value) {
+                        updateVariantUI(editSubcategory, editVariantGroup, editVariant);
+                    }
+                } else {
+                    editCategory.value = '';
+                    editSubcategory.value = '';
+                    // Hide variant group
+                    if (editVariantGroup) editVariantGroup.style.display = 'none';
+                    if (editVariant) {
+                        editVariant.required = false;
+                        editVariant.innerHTML = '';
+                    }
+                }
+            });
+        }
+
+        // Edit product modal
+        document.querySelectorAll('.edit-product-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                document.getElementById('edit_product_id').value = this.dataset.productId;
+                document.getElementById('edit_name').value = this.dataset.productName;
+                document.getElementById('edit_description').value = this.dataset.productDescription;
+                document.getElementById('edit_price').value = this.dataset.productPrice;
+                
+                // Set classification dropdown
+                const currentSubcategory = this.dataset.productSubcategory || '';
+                const currentVariant = this.dataset.productVariant || '';
+                const editClassificationSelect = document.getElementById('edit_classification');
+                
+                if (currentSubcategory && editClassificationSelect) {
+                    // Find and select the matching option
+                    const options = editClassificationSelect.options;
+                    for (let i = 0; i < options.length; i++) {
+                        if (options[i].value === currentSubcategory) {
+                            editClassificationSelect.selectedIndex = i;
+                            // Trigger change to update hidden fields
+                            editClassificationSelect.dispatchEvent(new Event('change'));
+                            break;
+                        }
+                    }
+                    
+                    // Update variant after classification is set
+                    setTimeout(() => {
+                        if (currentVariant && editSubcategory && editSubcategory.value) {
+                            updateVariantUI(editSubcategory, editVariantGroup, editVariant, currentVariant);
+                        }
+                    }, 100);
+                }
+            });
+        });
+
+        // Delete product modal
+        document.querySelectorAll('.delete-product-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                document.getElementById('delete_product_id').value = this.dataset.productId;
+                document.getElementById('delete_product_name').textContent = this.dataset.productName;
+            });
+        });
+        const variantMap = {
+            'Coffee Based': ['Hot', 'Over Ice'],
+            'Pasta': ['Solo', 'Shared'],
+            'Wine': ['Glass', 'Bottle']
+        };
+
+        function updateVariantUI(subcategorySelect, groupEl, variantSelect, currentValue) {
+            const subcategory = subcategorySelect.value;
+            const options = variantMap[subcategory];
+            if (options) {
+                groupEl.style.display = '';
+                variantSelect.innerHTML = options.map(opt => `<option value="${opt}">${opt}</option>`).join('');
+                if (currentValue) variantSelect.value = currentValue;
+                variantSelect.required = true;
+            } else {
+                groupEl.style.display = 'none';
+                variantSelect.required = false;
+                variantSelect.innerHTML = '';
+            }
+        }
+
+
+
+        // Backdrop is disabled via data-bs-backdrop="false" attribute
+        // Reset form when modal is hidden
+        const addProductModal = document.getElementById('addProductModal');
+        if (addProductModal) {
+            addProductModal.addEventListener('hidden.bs.modal', function () {
+                const form = this.querySelector('form');
+                if (form) {
+                    form.reset();
+                    // Reset hidden fields
+                    if (addCategory) addCategory.value = '';
+                    if (addSubcategory) addSubcategory.value = '';
+                    // Reset variant group
+                    if (addVariantGroup) {
+                        addVariantGroup.style.display = 'none';
+                        if (addVariant) {
+                            addVariant.required = false;
+                            addVariant.innerHTML = '';
+                        }
+                    }
+                }
+            });
+        }
+
+        // Availability toggle functionality
+        document.querySelectorAll('.toggle-availability-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const productId = this.dataset.productId;
+                const currentAvailability = this.dataset.productAvailable === 'true';
+
+                // Disable button temporarily to prevent multiple clicks
+                this.disabled = true;
+                this.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Updating...';
+
+                fetch('/admin/products/toggle-availability', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        product_id: parseInt(productId)
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update the availability badge
+                            const badge = document.getElementById(`availability-badge-${productId}`);
+                            if (data.available) {
+                                badge.className = 'badge fs-6 bg-success';
+                                badge.textContent = 'Available';
+                                this.className = 'btn btn-sm btn-outline-warning toggle-availability-btn';
+                                this.innerHTML = '<i class="bi bi-eye-slash me-1"></i>Make Unavailable';
+                                this.dataset.productAvailable = 'true';
+                            } else {
+                                badge.className = 'badge fs-6 bg-danger';
+                                badge.textContent = 'Unavailable';
+                                this.className = 'btn btn-sm btn-outline-success toggle-availability-btn';
+                                this.innerHTML = '<i class="bi bi-eye me-1"></i>Make Available';
+                                this.dataset.productAvailable = 'false';
+                            }
+
+                            // Show success message
+                            const toast = document.createElement('div');
+                            toast.className = 'toast align-items-center text-white bg-success border-0 position-fixed top-0 end-0 m-3';
+                            toast.style.zIndex = '9999';
+                            toast.innerHTML = `
+                            <div class="d-flex">
+                                <div class="toast-body">
+                                    <i class="bi bi-check-circle me-2"></i>${data.message}
+                                </div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                            </div>
+                        `;
+                            document.body.appendChild(toast);
+
+                            const bsToast = new bootstrap.Toast(toast);
+                            bsToast.show();
+
+                            // Remove toast element after it's hidden
+                            toast.addEventListener('hidden.bs.toast', () => {
+                                document.body.removeChild(toast);
+                            });
+                        } else {
+                            throw new Error(data.message || 'Failed to update availability');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        // Show error message
+                        const toast = document.createElement('div');
+                        toast.className = 'toast align-items-center text-white bg-danger border-0 position-fixed top-0 end-0 m-3';
+                        toast.style.zIndex = '9999';
+                        toast.innerHTML = `
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                <i class="bi bi-exclamation-circle me-2"></i>Failed to update availability: ${error.message}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                        </div>
+                    `;
+                        document.body.appendChild(toast);
+
+                        const bsToast = new bootstrap.Toast(toast);
+                        bsToast.show();
+
+                        // Remove toast element after it's hidden
+                        toast.addEventListener('hidden.bs.toast', () => {
+                            document.body.removeChild(toast);
+                        });
+
+                        // Reset button to original state
+                        if (currentAvailability) {
+                            this.innerHTML = '<i class="bi bi-eye-slash me-1"></i>Make Unavailable';
+                        } else {
+                            this.innerHTML = '<i class="bi bi-eye me-1"></i>Make Available';
+                        }
+                    })
+                    .finally(() => {
+                        this.disabled = false;
+                    });
+            });
+        });
+    });
+</script>
+{% endblock %}

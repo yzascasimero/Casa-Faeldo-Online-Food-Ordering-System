@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Admin-specific enhancements */
+        :root {
+            --admin-bg: #f8fafc;
+            --admin-card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --admin-card-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        body.admin-body {
+            background-color: var(--admin-bg);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        /* Enhanced Navbar */
+        .admin-navbar {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .admin-navbar .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: -0.025em;
+            color: #ffffff !important;
+            transition: opacity 0.2s;
+        }
+        
+        .admin-navbar .navbar-brand .navbar-logo {
+            height: 40px !important;
+            width: auto;
+        }
+
+        .admin-navbar .navbar-brand:hover {
+            opacity: 0.9;
+        }
+
+        .admin-navbar .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            border-radius: 0.375rem;
+            transition: all 0.2s;
+            margin: 0 0.25rem;
+        }
+
+        .admin-navbar .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #ffffff !important;
+        }
+
+        .admin-navbar .navbar-text {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+        }
+
+        /* Notification Badge */
+        #ordersBadge {
+            animation: pulse 2s infinite;
+            font-size: 0.7rem;
+            padding: 0.25em 0.5em;
+            min-width: 1.5em;
+            text-align: center;
+            border-radius: 50%;
+            font-weight: 600;
+            vertical-align: middle;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1.05);
+            }
+        }
+
+        /* Enhanced Cards */
+        .admin-card {
+            border: none;
+            border-radius: 0.75rem;
+            box-shadow: var(--admin-card-shadow);
+            transition: all 0.3s ease;
+            background: #ffffff;
+        }
+
+        .admin-card:hover {
+            box-shadow: var(--admin-card-shadow-hover);
+            transform: translateY(-2px);
+        }
+
+        .admin-card .card-header {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-bottom: 1px solid #e2e8f0;
+            border-radius: 0.75rem 0.75rem 0 0 !important;
+            padding: 1rem 1.25rem;
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 1rem;
+        }
+
+        .admin-card .card-body {
+            padding: 1.25rem;
+        }
+
+        /* Statistics Cards */
+        .stat-card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: var(--admin-card-shadow);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--admin-card-shadow-hover);
+        }
+
+        .stat-card .card-body {
+            padding: 1.25rem;
+        }
+
+        .stat-card h5 {
+            font-size: 0.8rem;
+            font-weight: 600;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-card h3 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        /* Enhanced Buttons */
+        .btn-admin {
+            border-radius: 0.5rem;
+            font-weight: 500;
+            padding: 0.625rem 1.25rem;
+            transition: all 0.2s;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-admin:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Enhanced Tables */
+        .admin-table {
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .admin-table thead {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        }
+
+        .admin-table thead th {
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+            color: #475569;
+            border-bottom: 2px solid #e2e8f0;
+            padding: 0.75rem 0.5rem;
+        }
+
+        .admin-table tbody tr {
+            transition: all 0.2s;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .admin-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .admin-table tbody td {
+            padding: 0.75rem 0.5rem;
+            vertical-align: middle;
+            font-size: 0.9rem;
+        }
+
+        /* Enhanced Badges */
+        .badge {
+            padding: 0.5em 0.75em;
+            font-weight: 500;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+        }
+
+        /* Page Headers */
+        .admin-page-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .admin-page-header h1 {
+            font-weight: 700;
+            color: #1e293b;
+            font-size: 1.75rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .admin-page-header p {
+            color: #64748b;
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        /* Enhanced Modals */
+        .modal-content {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 1rem 1rem 0 0;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            border-top: 1px solid #e2e8f0;
+            padding: 1.5rem;
+        }
+
+        /* Form Controls */
+        .form-control, .form-select {
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            padding: 0.625rem 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+        }
+
+        /* Nav Pills */
+        .nav-pills .nav-link {
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            margin-right: 0.5rem;
+        }
+
+        .nav-pills .nav-link.active {
+            background-color: var(--bs-primary);
+        }
+
+        /* Empty States */
+        .empty-state {
+            padding: 2rem 1rem;
+            text-align: center;
+            color: #94a3b8;
+        }
+
+        /* Smooth Transitions */
+        * {
+            transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .admin-page-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .stat-card .card-body {
+                padding: 1rem;
+            }
+            
+            .stat-card h3 {
+                font-size: 1.5rem;
+            }
+            
+            .stat-card h5 {
+                font-size: 0.75rem;
+            }
+            
+            .stat-card i {
+                font-size: 1.5rem !important;
+            }
+            
+            .admin-card .card-header {
+                padding: 0.875rem 1rem;
+                font-size: 0.95rem;
+            }
+            
+            .admin-card .card-body {
+                padding: 1rem;
+            }
+            
+            .admin-table thead th,
+            .admin-table tbody td {
+                padding: 0.5rem 0.375rem;
+                font-size: 0.85rem;
+            }
+            
+            main {
+                padding-top: 70px !important;
+            }
+        }
+    </style>
+    <title>{% block title %}Admin - Rezidencia Faeldo Resort & Café{% endblock %}</title>
+</head>
+
+<body class="admin-body">
+    {% if current_user.is_authenticated and current_user.is_admin and session.get('is_admin') %}
+    <!-- Admin Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary admin-navbar fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('admin_dashboard') }}">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Rezidenzia Faeldo Logo" class="navbar-logo me-2">
+                Rezidenzia Faeldo Admin
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="adminNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin_dashboard') }}">
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin_menu_management') }}">
+                            Menu Management
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin_orders') }}">
+                            Orders
+                            <span class="badge bg-danger ms-1" id="ordersBadge" style="display: none;">0</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin_reservations') }}">
+                            Reservations
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin_logout') }}">
+                            Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="container-fluid px-3 px-md-4 pt-3">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show mb-3"
+            role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <main style="padding-top: 76px; min-height: calc(100vh - 76px);">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        // Admin notification system - Option 3 (Badge) and Option 4 (Push Notifications)
+        (function() {
+            let lastOrderCount = 0;
+            let notificationPermission = Notification.permission;
+            
+            // Request notification permission on page load
+            if ('Notification' in window && notificationPermission === 'default') {
+                // Ask for permission after a short delay
+                setTimeout(() => {
+                    Notification.requestPermission().then(permission => {
+                        notificationPermission = permission;
+                        if (permission === 'granted') {
+                            console.log('Push notifications enabled');
+                        }
+                    });
+                }, 2000);
+            }
+            
+            // Function to show browser push notification
+            function showPushNotification(title, message, orderId) {
+                if ('Notification' in window && notificationPermission === 'granted') {
+                    const notification = new Notification(title, {
+                        body: message,
+                        icon: '{{ url_for("static", filename="images/logo.png") }}',
+                        badge: '{{ url_for("static", filename="images/logo.png") }}',
+                        tag: `order-${orderId}`,
+                        requireInteraction: false
+                    });
+                    
+                    notification.onclick = function() {
+                        window.focus();
+                        window.location.href = '{{ url_for("admin_orders") }}';
+                        notification.close();
+                    };
+                    
+                    // Auto-close after 5 seconds
+                    setTimeout(() => notification.close(), 5000);
+                }
+            }
+            
+            // Function to update order badge
+            function updateOrderBadge(count) {
+                const badge = document.getElementById('ordersBadge');
+                if (badge) {
+                    if (count > 0) {
+                        badge.textContent = count;
+                        badge.style.display = 'inline-block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+            }
+            
+            // Function to check for new orders
+            function checkNewOrders() {
+                fetch('{{ url_for("admin_new_orders_count") }}')
+                    .then(response => response.json())
+                    .then(data => {
+                        const pendingCount = data.pending_orders || 0;
+                        
+                        // Update badge
+                        updateOrderBadge(pendingCount);
+                        
+                        // Show push notification if new orders arrived
+                        if (pendingCount > lastOrderCount && lastOrderCount > 0) {
+                            const newOrders = pendingCount - lastOrderCount;
+                            const message = newOrders === 1 
+                                ? `New order received! Total: ${pendingCount} pending orders`
+                                : `${newOrders} new orders received! Total: ${pendingCount} pending orders`;
+                            
+                            showPushNotification('New Order Alert', message, null);
+                        }
+                        
+                        lastOrderCount = pendingCount;
+                    })
+                    .catch(error => {
+                        console.error('Error checking orders:', error);
+                    });
+            }
+            
+            // Check for new orders every 5 seconds
+            if (window.location.pathname.startsWith('/admin')) {
+                // Initial check
+                checkNewOrders();
+                
+                // Then check every 5 seconds
+                setInterval(checkNewOrders, 5000);
+            }
+        })();
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+
+</html>

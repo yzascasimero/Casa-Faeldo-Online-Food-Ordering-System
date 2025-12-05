@@ -1,0 +1,123 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Add Menu Item - Rezidencia Faeldo Resort & Café{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="py-5 bg-primary text-white">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h1 class="display-4 fw-bold mb-3">Add New Menu Item</h1>
+                <p class="lead text-white" style="color: #ffffff !important;">Create a new product for your menu</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Add Product Form -->
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-lg">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">
+                            <i class="bi bi-plus-circle me-2"></i>Product Information
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="POST" enctype="multipart/form-data">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="name" class="form-label">Item Name *</label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="price" class="form-label">Price (₱) *</label>
+                                    <input type="number" step="0.01" class="form-control" id="price" name="price" required>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="classification" class="form-label">Classification *</label>
+                                    <select class="form-select" id="classification" name="classification" required>
+                                        <option value="">Select Classification</option>
+                                        <optgroup label="Food Menu">
+                                            <option value="Appetizer" data-category="Food Menu">Appetizer</option>
+                                            <option value="Soup" data-category="Food Menu">Soup</option>
+                                            <option value="Pizza" data-category="Food Menu">Pizza</option>
+                                            <option value="Salad" data-category="Food Menu">Salad</option>
+                                            <option value="Pasta" data-category="Food Menu">Pasta</option>
+                                            <option value="Marinduque & Pinoy Dishes" data-category="Food Menu">Marinduque & Pinoy Dishes</option>
+                                            <option value="Solo Meals" data-category="Food Menu">Solo Meals</option>
+                                        </optgroup>
+                                        <optgroup label="Drinks Menu">
+                                            <option value="Coffee Based" data-category="Drinks Menu">Coffee Based</option>
+                                            <option value="Smoothies" data-category="Drinks Menu">Smoothies</option>
+                                            <option value="Teas & Hot Chocolate" data-category="Drinks Menu">Teas & Hot Chocolate</option>
+                                            <option value="Espresso" data-category="Drinks Menu">Espresso</option>
+                                            <option value="Ice Blended" data-category="Drinks Menu">Ice Blended</option>
+                                            <option value="Lemonade" data-category="Drinks Menu">Lemonade</option>
+                                            <option value="Pitcher" data-category="Drinks Menu">Pitcher</option>
+                                        </optgroup>
+                                        <optgroup label="Dessert & Wine">
+                                            <option value="Dessert" data-category="Dessert & Wine">Dessert</option>
+                                            <option value="Wine" data-category="Dessert & Wine">Wine</option>
+                                            <option value="Beer & Liquour" data-category="Dessert & Wine">Beer & Liquour</option>
+                                            <option value="Soda & Juice in Can" data-category="Dessert & Wine">Soda & Juice in Can</option>
+                                        </optgroup>
+                                    </select>
+                                    <input type="hidden" id="category" name="category">
+                                    <input type="hidden" id="subcategory" name="subcategory">
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="description" class="form-label">Description *</label>
+                                    <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="image" class="form-label">Product Image</label>
+                                    <input type="file" class="form-control" id="image" name="image" accept="image/*">
+                                    <div class="form-text">Upload an image for this menu item (optional)</div>
+                                </div>
+                                
+                                <div class="col-12 mt-4">
+                                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                        <a href="{{ url_for('admin_menu_management') }}" class="btn btn-secondary btn-admin">Cancel</a>
+                                        <button type="submit" class="btn btn-success btn-admin">
+                                            <i class="bi bi-check-circle me-2"></i>Add Menu Item
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const classificationSelect = document.getElementById('classification');
+        const categoryInput = document.getElementById('category');
+        const subcategoryInput = document.getElementById('subcategory');
+        
+        classificationSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value) {
+                const category = selectedOption.getAttribute('data-category');
+                const subcategory = selectedOption.value;
+                
+                categoryInput.value = category;
+                subcategoryInput.value = subcategory;
+            } else {
+                categoryInput.value = '';
+                subcategoryInput.value = '';
+            }
+        });
+    });
+</script>
+{% endblock %}

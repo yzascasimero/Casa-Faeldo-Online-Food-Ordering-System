@@ -1,0 +1,8 @@
+# requirements.txt
+Flask
+Flask-SQLAlchemy
+PyMySQL
+python-dotenv
+Flask-Login
+Werkzeug
+cryptography
